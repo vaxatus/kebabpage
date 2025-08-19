@@ -7,7 +7,7 @@ WORKDIR /app
 # Copy package files
 COPY package.json yarn.lock ./
 
-# Install dependencies
+# Install all dependencies (including dev dependencies for build)
 RUN yarn install --frozen-lockfile
 
 # Copy source code
@@ -16,17 +16,26 @@ COPY . .
 # Build the application
 RUN yarn build
 
-# Production stage with Nginx
-FROM nginx:alpine AS production
+# Production stage with Node.js
+FROM node:20-alpine AS production
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files
+COPY package.json yarn.lock ./
+
+# Install only production dependencies
+RUN yarn install --frozen-lockfile --production
 
 # Copy built files from builder stage
-COPY --from=builder /app/dist /usr/share/nginx/html
+COPY --from=builder /app/dist ./dist
 
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copy any additional static assets that might be needed
+COPY --from=builder /app/public ./public
 
-# Expose port 80
-EXPOSE 80
+# Expose port (Railway will override this with PORT env var)
+EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the application
+CMD ["yarn", "start"]

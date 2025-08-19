@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "start": "node server.js",
     "docker:build": "docker build -t kebab-website .",
     "docker:run": "docker run -p 3000:80 kebab-website",
     "docker:dev": "docker-compose --profile dev up --build",
@@ -16,6 +17,7 @@
     "docker:logs": "docker-compose logs -f"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "lucide-react": "^0.540.0",
     "qrcode": "^1.5.4",
     "react": "^19.1.1",
