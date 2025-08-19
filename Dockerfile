@@ -10,7 +10,7 @@ COPY package.json yarn.lock ./
 # Install all dependencies (including dev dependencies for build)
 RUN yarn install --frozen-lockfile
 
-# Copy source code
+# Copy source code and config files
 COPY . .
 
 # Build the application
@@ -28,8 +28,8 @@ WORKDIR /app
 # Copy package files
 COPY package.json yarn.lock ./
 
-# Install only production dependencies
-RUN yarn install --frozen-lockfile --production && yarn cache clean
+# Install only production dependencies (skip postinstall script)
+RUN yarn install --frozen-lockfile --production --ignore-scripts && yarn cache clean
 
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
