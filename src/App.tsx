@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { ShoppingCart, Phone, MapPin, Clock, QrCode, ChevronDown } from 'lucide-react';
 import QRCode from 'react-qr-code';
 
@@ -336,7 +336,7 @@ function App() {
       <main className="container py-16" id="menu">
 
         {/* Menu with Submenu Structure */}
-        {['kebab', 'burger', 'zapiekanka', 'fries'].map((category, categoryIndex) => {
+        {['kebab', 'burger', 'zapiekanka', 'fries'].map((category) => {
           const categoryItems = menuItems.filter(item => item.category === category);
           const categoryNames = {
             kebab: 'Kebaby',
@@ -363,7 +363,7 @@ function App() {
 
               <div className="menu-category-items">
                 <div className="space-y-3 pb-4">
-                  {categoryItems.map((item, itemIndex) => (
+                  {categoryItems.map((item) => (
                     <div
                       key={item.id}
                       className="menu-item"
