@@ -31,6 +31,9 @@ RUN yarn install --frozen-lockfile --production
 # Copy built files from builder stage
 COPY --from=builder /app/dist ./dist
 
+# Copy server.js file
+COPY server.js ./
+
 # Copy any additional static assets that might be needed
 COPY --from=builder /app/public ./public
 
