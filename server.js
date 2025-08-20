@@ -6,53 +6,66 @@ import { existsSync, readdirSync } from 'fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const app = express();
+// Get port from environment variable with fallback
 const PORT = process.env.PORT || 3000;
 const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL;
 const PUBLIC_URL = process.env.PUBLIC_URL || RAILWAY_STATIC_URL;
 
-console.log('Starting server...');
-console.log('Environment:', process.env.NODE_ENV || 'development');
-console.log('Port:', PORT);
-console.log('Railway URL:', RAILWAY_STATIC_URL);
-console.log('Public URL:', PUBLIC_URL);
-console.log('Current directory:', __dirname);
+console.log('🚀 Starting server...');
+console.log('📊 Environment:', process.env.NODE_ENV || 'development');
+console.log('🔌 Port from env:', process.env.PORT);
+console.log('🔌 Final Port:', PORT);
+console.log('🌐 Railway URL:', RAILWAY_STATIC_URL);
+console.log('🌍 Public URL:', PUBLIC_URL);
+console.log('📁 Current directory:', __dirname);
+console.log('🔧 Process ID:', process.pid);
 
 // Check if dist folder exists
 const distPath = join(__dirname, 'dist');
-console.log('Dist folder exists:', existsSync(distPath));
+console.log('📦 Dist folder exists:', existsSync(distPath));
 if (existsSync(distPath)) {
-  console.log('Dist folder contents:', readdirSync(distPath));
+  console.log('📂 Dist folder contents:', readdirSync(distPath));
 }
+
+const app = express();
 
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Add request logging
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.path} - ${new Date().toISOString()}`);
+  next();
+});
 
 // Serve static files from dist directory
 app.use(express.static(join(__dirname, 'dist')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  console.log('Health check requested');
+  console.log('🏥 Health check requested');
   res.status(200).json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
     port: PORT,
-    env: process.env.NODE_ENV || 'development'
+    envPort: process.env.PORT,
+    env: process.env.NODE_ENV || 'development',
+    pid: process.pid,
+    uptime: process.uptime()
   });
 });
 
 // Root endpoint
 app.get('/', (req, res) => {
-  console.log('Root endpoint requested');
+  console.log('🏠 Root endpoint requested');
   const indexPath = join(__dirname, 'dist', 'index.html');
-  console.log('Trying to serve:', indexPath);
+  console.log('📄 Trying to serve:', indexPath);
 
   if (existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    console.error('index.html not found at:', indexPath);
+    console.error('❌ index.html not found at:', indexPath);
     res.status(404).send(`
       <h1>Build Error</h1>
       <p>The React app build files are missing.</p>
@@ -66,13 +79,13 @@ app.get('/', (req, res) => {
 
 // Catch-all handler for SPA routing
 app.get('*', (req, res) => {
-  console.log('Catch-all route:', req.path);
+  console.log('🔄 Catch-all route:', req.path);
   const indexPath = join(__dirname, 'dist', 'index.html');
 
   if (existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    console.error('index.html not found for route:', req.path);
+    console.error('❌ index.html not found for route:', req.path);
     res.status(404).send(`
       <h1>Build Error</h1>
       <p>The React app build files are missing for route: ${req.path}</p>
@@ -83,7 +96,7 @@ app.get('*', (req, res) => {
 
 // Error handling
 app.use((err, req, res, next) => {
-  console.error('Error:', err);
+  console.error('❌ Error:', err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
@@ -93,6 +106,7 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🚂 Railway URL: ${process.env.RAILWAY_STATIC_URL || 'Not set'}`);
   console.log(`🏥 Health check: /health`);
+  console.log(`🔌 Listening on: 0.0.0.0:${PORT}`);
 
   // Railway-specific logging
   if (process.env.RAILWAY_STATIC_URL) {
@@ -111,17 +125,17 @@ server.on('error', (err) => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  console.log('🛑 SIGTERM received, shutting down gracefully');
   server.close(() => {
-    console.log('Process terminated');
+    console.log('✅ Process terminated');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
+  console.log('🛑 SIGINT received, shutting down gracefully');
   server.close(() => {
-    console.log('Process terminated');
+    console.log('✅ Process terminated');
     process.exit(0);
   });
 });
