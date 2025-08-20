@@ -88,10 +88,25 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const server = app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, () => {
   console.log(`✅ Server is running on port ${PORT}`);
-  console.log(`🌐 Visit: http://localhost:${PORT}`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🚂 Railway URL: ${process.env.RAILWAY_STATIC_URL || 'Not set'}`);
+  console.log(`🏥 Health check: /health`);
+
+  // Railway-specific logging
+  if (process.env.RAILWAY_STATIC_URL) {
+    console.log(`🌍 Live at: ${process.env.RAILWAY_STATIC_URL}`);
+  }
+});
+
+// Error handling for server startup
+server.on('error', (err) => {
+  console.error('❌ Server startup error:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+  }
+  process.exit(1);
 });
 
 // Graceful shutdown
@@ -109,4 +124,15 @@ process.on('SIGINT', () => {
     console.log('Process terminated');
     process.exit(0);
   });
+});
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
 });
