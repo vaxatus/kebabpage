@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server.js",
+    "railway:build": "yarn install && yarn build",
 
     "docker:build": "docker build -t kebab-website .",
     "docker:run": "docker run -p 3000:80 kebab-website",

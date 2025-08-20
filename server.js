@@ -1,16 +1,29 @@
 import express from 'express';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { existsSync, readdirSync } from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const RAILWAY_STATIC_URL = process.env.RAILWAY_STATIC_URL;
+const PUBLIC_URL = process.env.PUBLIC_URL || RAILWAY_STATIC_URL;
 
 console.log('Starting server...');
 console.log('Environment:', process.env.NODE_ENV || 'development');
 console.log('Port:', PORT);
+console.log('Railway URL:', RAILWAY_STATIC_URL);
+console.log('Public URL:', PUBLIC_URL);
+console.log('Current directory:', __dirname);
+
+// Check if dist folder exists
+const distPath = join(__dirname, 'dist');
+console.log('Dist folder exists:', existsSync(distPath));
+if (existsSync(distPath)) {
+  console.log('Dist folder contents:', readdirSync(distPath));
+}
 
 // Basic middleware
 app.use(express.json());
@@ -33,13 +46,39 @@ app.get('/health', (req, res) => {
 // Root endpoint
 app.get('/', (req, res) => {
   console.log('Root endpoint requested');
-  res.sendFile(join(__dirname, 'dist', 'index.html'));
+  const indexPath = join(__dirname, 'dist', 'index.html');
+  console.log('Trying to serve:', indexPath);
+
+  if (existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error('index.html not found at:', indexPath);
+    res.status(404).send(`
+      <h1>Build Error</h1>
+      <p>The React app build files are missing.</p>
+      <p>Expected index.html at: ${indexPath}</p>
+      <p>Current directory: ${__dirname}</p>
+      <p>Dist exists: ${existsSync(distPath)}</p>
+      <p><a href="/health">Check health endpoint</a></p>
+    `);
+  }
 });
 
 // Catch-all handler for SPA routing
 app.get('*', (req, res) => {
   console.log('Catch-all route:', req.path);
-  res.sendFile(join(__dirname, 'dist', 'index.html'));
+  const indexPath = join(__dirname, 'dist', 'index.html');
+
+  if (existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    console.error('index.html not found for route:', req.path);
+    res.status(404).send(`
+      <h1>Build Error</h1>
+      <p>The React app build files are missing for route: ${req.path}</p>
+      <p><a href="/health">Check health endpoint</a></p>
+    `);
+  }
 });
 
 // Error handling
